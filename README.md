@@ -83,26 +83,46 @@ The cleanup flow:
 
 # System Architecture
 
-## Core Models
+```mermaid
+flowchart TD
 
-### Product
-Represents purchasable products.
+    A[User Reserves Product] --> B[POST /api/reservations]
 
-### Warehouse
-Represents inventory storage locations.
+    B --> C[Prisma Transaction]
 
-### Inventory
-Maintains:
-- total stock
-- reserved stock
-- warehouse-product mapping
+    C --> D[Check Available Stock]
 
-### Reservation
-Tracks:
-- reservation state
-- expiry time
-- quantity reserved
-- product and warehouse relationships
+    D --> E{Stock Available?}
+
+    E -- No --> F[Return 409 Conflict]
+
+    E -- Yes --> G[Increment Reserved Stock]
+
+    G --> H[Create Reservation]
+
+    H --> I[Return Reservation Response]
+
+    I --> J[Checkout Page]
+
+    J --> K{User Action}
+
+    K -- Confirm --> L[POST /confirm]
+
+    L --> M[Decrement Total Stock]
+
+    M --> N[Update Status CONFIRMED]
+
+    K -- Cancel --> O[POST /release]
+
+    O --> P[Restore Reserved Stock]
+
+    P --> Q[Update Status RELEASED]
+
+    R[Cleanup Job] --> S[Find Expired Reservations]
+
+    S --> T[Restore Reserved Inventory]
+
+    T --> U[Mark Reservation EXPIRED]
 
 ---
 
