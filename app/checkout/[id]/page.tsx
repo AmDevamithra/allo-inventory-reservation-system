@@ -145,19 +145,19 @@ export default function CheckoutPage({
 
   async function cancelReservation() {
 
-    await fetch(
-    `/api/reservations/${resolvedParams.id}`,
+  await fetch(
+    `/api/reservations/${resolvedParams.id}/release`,
     {
-      cache: 'no-store'
+      method: 'POST'
     }
   )
 
-    toast.success(
-      'Reservation cancelled'
-    )
+  toast.success(
+    'Reservation cancelled'
+  )
 
-    fetchReservation()
-  }
+  fetchReservation()
+}
 
   function getStatusColor() {
 
