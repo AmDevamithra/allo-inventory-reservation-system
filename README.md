@@ -86,46 +86,44 @@ The cleanup flow:
 ```mermaid
 flowchart TD
 
-    A[User Reserves Product] --> B[POST /api/reservations]
+    A["User Reserves Product"] --> B["Reservation API"]
 
-    B --> C[Prisma Transaction]
+    B --> C["Prisma Transaction"]
 
-    C --> D[Check Available Stock]
+    C --> D["Check Available Stock"]
 
-    D --> E{Stock Available?}
+    D --> E{"Stock Available?"}
 
-    E -- No --> F[Return 409 Conflict]
+    E -- No --> F["Return 409 Conflict"]
 
-    E -- Yes --> G[Increment Reserved Stock]
+    E -- Yes --> G["Increment Reserved Stock"]
 
-    G --> H[Create Reservation]
+    G --> H["Create Reservation"]
 
-    H --> I[Return Reservation Response]
+    H --> I["Return Reservation Response"]
 
-    I --> J[Checkout Page]
+    I --> J["Checkout Page"]
 
-    J --> K{User Action}
+    J --> K{"User Action"}
 
-    K -- Confirm --> L[POST /confirm]
+    K -- Confirm --> L["Confirm Reservation"]
 
-    L --> M[Decrement Total Stock]
+    L --> M["Decrement Total Stock"]
 
-    M --> N[Update Status CONFIRMED]
+    M --> N["Update Status: CONFIRMED"]
 
-    K -- Cancel --> O[POST /release]
+    K -- Cancel --> O["Release Reservation"]
 
-    O --> P[Restore Reserved Stock]
+    O --> P["Restore Reserved Stock"]
 
-    P --> Q[Update Status RELEASED]
+    P --> Q["Update Status: RELEASED"]
 
-    R[Cleanup Job] --> S[Find Expired Reservations]
+    R["Cleanup Job"] --> S["Find Expired Reservations"]
 
-    S --> T[Restore Reserved Inventory]
+    S --> T["Restore Reserved Inventory"]
 
-    T --> U[Mark Reservation EXPIRED]
-
----
-
+    T --> U["Update Status: EXPIRED"]
+```
 # API Endpoints
 
 ## Products
