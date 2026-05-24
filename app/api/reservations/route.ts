@@ -1,14 +1,43 @@
+import { prisma }
+from '@/lib/prisma'
+
 import { reservationSchema }
 from '@/lib/validations'
 
 import { createReservation }
 from '@/lib/reservation'
 
-export async function POST(request: Request) {
+export async function POST(
+  request: Request
+) {
 
   try {
 
-    const body = await request.json()
+    const body =
+      await request.json()
+
+    const idempotencyKey =
+      request.headers.get(
+        'Idempotency-Key'
+      )
+
+    if (idempotencyKey) {
+
+      const existingKey =
+        await prisma.idempotencyKey.findUnique({
+
+          where: {
+            key: idempotencyKey
+          }
+        })
+
+      if (existingKey) {
+
+        return Response.json(
+          existingKey.response
+        )
+      }
+    }
 
     const validatedData =
       reservationSchema.parse(body)
@@ -20,9 +49,30 @@ export async function POST(request: Request) {
         validatedData.quantity
       )
 
-    return Response.json(reservation)
+    if (idempotencyKey) {
+
+      await prisma.idempotencyKey.create({
+
+        data: {
+
+          key: idempotencyKey,
+
+          endpoint:
+            '/api/reservations',
+
+          response: JSON.parse(
+              JSON.stringify(reservation)
+            )
+        }
+      })
+    }
+
+    return Response.json(
+      reservation
+    )
 
   } catch (error: any) {
+    console.log(error)
 
     if (
       error.message ===

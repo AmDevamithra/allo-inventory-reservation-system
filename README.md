@@ -292,6 +292,37 @@ In production this can be scheduled using:
 - Full payment gateway integration
 
 ---
+## Bonus: Idempotency Support
+
+Implemented idempotency support for the reservation endpoint using the `Idempotency-Key` request header.
+
+### How it works
+
+- Clients can send a unique `Idempotency-Key` header while creating a reservation.
+- The server stores the original response associated with that key in the database.
+- If the same request is retried with the same key, the previously stored response is returned instead of creating a new reservation.
+- This prevents duplicate reservations and duplicate stock locking during network retries or payment gateway retries.
+
+### Example
+
+```http
+POST /api/reservations
+Idempotency-Key: abc123
+```
+
+If the same request is sent again with the same key:
+
+- no new reservation is created
+- stock is not reserved again
+- the original response is returned safely
+
+### Implementation Notes
+
+- Implemented using a dedicated `IdempotencyKey` Prisma model stored in PostgreSQL.
+- Works correctly in serverless environments like Vercel.
+- Prevents duplicate side effects without requiring Redis or external locking infrastructure.
+
+---
 
 # Deployment
 
